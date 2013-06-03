@@ -1,6 +1,13 @@
-/.settings/
+# Eclipse
 .classpath
 .project
-/exLibs/
-/buildNumber.properties
-/dependency-reduced-pom.xml
+.metadata/
+.settings/
+bin/
+target/
+
+# Mac Crap
+.DS_Store
+
+# Other
+dependency-reduced-pom.xml
