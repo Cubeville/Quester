@@ -37,7 +37,7 @@ public final class QuestCondition extends Condition {
 	}
 
 	@Override
-	public boolean isMet(Player player, Quester plugin) {	
+	public boolean isMet(Player player, Quester plugin) {
 		PlayerProfile profile = plugin.getProfileManager().getProfile(player.getName());
 		if(running) {
 			return profile.hasQuest(quest) != inverted;
@@ -57,7 +57,7 @@ public final class QuestCondition extends Condition {
 	
 	@Override
 	public String show() {
-		String status = running ? "be doing" : "have done";
+		String status = (inverted ? "not " : "") + (running ? "be doing" : "have done");
 		return "Must " + status + " quest '" + quest + "'.";
 	}
 	
@@ -91,6 +91,7 @@ public final class QuestCondition extends Condition {
 		return new QuestCondition(qst, t, context.hasFlag('r'), context.hasFlag('i'));
 	}
 	
+	@Override
 	protected void save(StorageKey key) {
 		key.setString("quest", quest);
 		if(time != 0) {
@@ -110,7 +111,7 @@ public final class QuestCondition extends Condition {
 		
 		if(key.getString("quest") != null) {
 			qst = key.getString("quest");
-		}	
+		}
 		else {
 			return null;
 		}
