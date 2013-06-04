@@ -18,16 +18,9 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
+
 import org.mcstats.Metrics;
 
-import com.gmail.molnardad.quester.listeners.*;
-import com.gmail.molnardad.quester.managers.DataManager;
-import com.gmail.molnardad.quester.managers.ElementManager;
-import com.gmail.molnardad.quester.managers.LanguageManager;
-import com.gmail.molnardad.quester.managers.CommandManager;
-import com.gmail.molnardad.quester.managers.ProfileManager;
-import com.gmail.molnardad.quester.managers.QuestHolderManager;
-import com.gmail.molnardad.quester.managers.QuestManager;
 import com.gmail.molnardad.quester.commandbase.exceptions.QCommandException;
 import com.gmail.molnardad.quester.commandbase.exceptions.QPermissionException;
 import com.gmail.molnardad.quester.commandbase.exceptions.QUsageException;
@@ -35,11 +28,20 @@ import com.gmail.molnardad.quester.commands.AdminCommands;
 import com.gmail.molnardad.quester.commands.ModificationCommands;
 import com.gmail.molnardad.quester.commands.UserCommands;
 import com.gmail.molnardad.quester.conditions.*;
+import com.gmail.molnardad.quester.elements.Element;
+import com.gmail.molnardad.quester.exceptions.ElementException;
+import com.gmail.molnardad.quester.exceptions.QuesterException;
+import com.gmail.molnardad.quester.listeners.*;
+import com.gmail.molnardad.quester.managers.CommandManager;
+import com.gmail.molnardad.quester.managers.DataManager;
+import com.gmail.molnardad.quester.managers.ElementManager;
+import com.gmail.molnardad.quester.managers.LanguageManager;
+import com.gmail.molnardad.quester.managers.ProfileManager;
+import com.gmail.molnardad.quester.managers.QuestHolderManager;
+import com.gmail.molnardad.quester.managers.QuestManager;
 import com.gmail.molnardad.quester.objectives.*;
 import com.gmail.molnardad.quester.qevents.*;
 import com.gmail.molnardad.quester.storage.StorageKey;
-import com.gmail.molnardad.quester.elements.Element;
-import com.gmail.molnardad.quester.exceptions.*;
 
 public class Quester extends JavaPlugin {
 
@@ -126,6 +128,7 @@ public class Quester extends JavaPlugin {
 			commands.register(ModificationCommands.class);
 			
 			if (getServer().getScheduler().scheduleSyncDelayedTask(this, new Runnable(){
+				@Override
 				public void run() {
 					Quester.this.quests.loadQuests();
 					Quester.this.profiles.loadProfiles();
@@ -265,7 +268,7 @@ public class Quester extends JavaPlugin {
 				}
 				if(!denizen) {
 					log.info("Incorrect denizen version found. Supported version is 0.8.8 or newer.");
-				} 
+				}
 			}
 			return denizen;
 		}
@@ -339,41 +342,46 @@ public class Quester extends JavaPlugin {
 		private void registerElements() {
 			@SuppressWarnings("unchecked")
 			Class<? extends Element>[] classes = new Class[]{
-					// conditions 
+					// conditions
+					ExperienceCondition.class,
 					ItemCondition.class,
 					MoneyCondition.class,
 					PermissionCondition.class,
 					PointCondition.class,
 					QuestCondition.class,
 					QuestNotCondition.class,
-					TimeCondition.class,
 					SlotCondition.class,
-					ExperienceCondition.class,
+					TimeCondition.class,
 					
 					// events
 					CancelQevent.class,
 					CommandQevent.class,
+					DenizenScriptQevent.class,
+					EffectQevent.class,
+					ExperienceQevent.class,
 					ExplosionQevent.class,
+					ItemQevent.class,
 					LightningQevent.class,
 					MessageQevent.class,
+					MoneyQevent.class,
 					ObjectiveCompleteQevent.class,
+					PointQevent.class,
 					QuestQevent.class,
 					SetBlockQevent.class,
+					SoundQevent.class,
 					SpawnQevent.class,
 					TeleportQevent.class,
 					ToggleQevent.class,
-					EffectQevent.class,
-					ExperienceQevent.class,
-					MoneyQevent.class,
-					PointQevent.class,
-					ItemQevent.class,
-					SoundQevent.class,
 					
 					// objectives
+					ActionObjective.class,
+					BossObjective.class,
 					BreakObjective.class,
 					CollectObjective.class,
 					CraftObjective.class,
 					DeathObjective.class,
+					DropObjective.class,
+					DyeObjective.class,
 					EnchantObjective.class,
 					ExpObjective.class,
 					FishObjective.class,
@@ -382,18 +390,14 @@ public class Quester extends JavaPlugin {
 					MilkObjective.class,
 					MobKillObjective.class,
 					MoneyObjective.class,
+					NpcKillObjective.class,
+					NpcObjective.class,
 					PlaceObjective.class,
 					PlayerKillObjective.class,
 					ShearObjective.class,
 					SmeltObjective.class,
 					TameObjective.class,
 					WorldObjective.class,
-					ActionObjective.class,
-					NpcObjective.class,
-					DyeObjective.class,
-					BossObjective.class,
-					NpcKillObjective.class,
-					DropObjective.class
 			};
 			for(Class<? extends Element> clss : classes) {
 				try {
