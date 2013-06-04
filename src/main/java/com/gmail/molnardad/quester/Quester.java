@@ -148,10 +148,9 @@ public class Quester extends JavaPlugin {
 		public void onDisable() {
 			if(loaded) {
 				stopSaving();
-				// TODO SAVING
-				// profiles
-				// holders, signs
-				// quests
+				profiles.saveProfiles();
+				quests.saveQuests();
+				holders.saveHolders();
 				if(DataManager.verbose) {
 					log.info("Quester data saved.");
 				}
@@ -315,22 +314,23 @@ public class Quester extends JavaPlugin {
 			PositionListener posCheck = new PositionListener(this);
 			Bukkit.getScheduler().scheduleSyncRepeatingTask(this, posCheck, 20, 20);
 			
+			getServer().getPluginManager().registerEvents(new ActionListener(this), this);
 			getServer().getPluginManager().registerEvents(new BreakListener(this), this);
-			getServer().getPluginManager().registerEvents(new DeathListener(this), this);
-			getServer().getPluginManager().registerEvents(new MobKillListener(this), this);
-			getServer().getPluginManager().registerEvents(new PlaceListener(this), this);
+			getServer().getPluginManager().registerEvents(new CollectListener(this), this);
 			getServer().getPluginManager().registerEvents(new CraftSmeltListener(this), this);
+			getServer().getPluginManager().registerEvents(new DeathListener(this), this);
+			getServer().getPluginManager().registerEvents(new DropListener(this), this);
+			getServer().getPluginManager().registerEvents(new DyeListener(this), this);
 			getServer().getPluginManager().registerEvents(new EnchantListener(this), this);
-			getServer().getPluginManager().registerEvents(new ShearListener(this), this);
 			getServer().getPluginManager().registerEvents(new FishListener(this), this);
 			getServer().getPluginManager().registerEvents(new MilkListener(this), this);
-			getServer().getPluginManager().registerEvents(new CollectListener(this), this);
-			getServer().getPluginManager().registerEvents(new DropListener(this), this);
-			getServer().getPluginManager().registerEvents(new TameListener(this), this);
-			getServer().getPluginManager().registerEvents(new SignListeners(this), this);
-			getServer().getPluginManager().registerEvents(new ActionListener(this), this);
-			getServer().getPluginManager().registerEvents(new DyeListener(this), this);
+			getServer().getPluginManager().registerEvents(new MobKillListener(this), this);
+			getServer().getPluginManager().registerEvents(new PlaceListener(this), this);
 			getServer().getPluginManager().registerEvents(new QuestItemListener(), this);
+			getServer().getPluginManager().registerEvents(new ShearListener(this), this);
+			getServer().getPluginManager().registerEvents(new SignListeners(this), this);
+			getServer().getPluginManager().registerEvents(new TameListener(this), this);
+			
 			if(citizens2) {
 				getServer().getPluginManager().registerEvents(new Citizens2Listener(this), this);
 			}
