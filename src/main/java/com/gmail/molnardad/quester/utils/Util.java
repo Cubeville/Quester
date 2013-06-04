@@ -295,7 +295,7 @@ public class Util {
 	public static PotionEffect parseEffect(String arg, QuesterLang lang) throws IllegalArgumentException {
 		
 		PotionEffectType type = null;
-		double dur = 0; 
+		double dur = 0;
 		int amp = 0;
 		String[] s = arg.split(";");
 		if(s.length > 3 || s.length < 2) {
@@ -378,7 +378,7 @@ public class Util {
 					break;
 			case 51 : result = "Infinity";
 					break;
-		} 
+		}
 		switch(lvl) {
 			case 1 : result = result + " I";
 					break;
@@ -389,6 +389,18 @@ public class Util {
 			case 4 : result = result + " IV";
 					break;
 			case 5 : result = result + " V";
+					break;
+			case 6 : result = result + " VI";
+					break;
+			case 7 : result = result + " VII";
+					break;
+			case 8 : result = result + " VIII";
+					break;
+			case 9 : result = result + " IX";
+					break;
+			case 10 : result = result + " X";
+					break;
+			default : result = result + " " + lvl;
 					break;
 		}
 		return result;
@@ -480,7 +492,7 @@ public class Util {
 		if(arr[0] < -3 || arr[1] < 0)
 			throw new IllegalArgumentException(lang.ERROR_CMD_OCC_INCORRECT);
 		return arr;
-	} 
+	}
 	
 	public static String serializeOccasion(int occ, int del) {
 		if(del != 0) {
@@ -569,7 +581,7 @@ public class Util {
 		
 		String[] split = str.split(";");
 		
-		if(str.length() < 4) 
+		if(str.length() < 4)
 			return null;
 		
 		
