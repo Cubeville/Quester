@@ -42,16 +42,13 @@ public final class QuestCondition extends Condition {
 		if(running) {
 			return profile.hasQuest(quest) != inverted;
 		}
-		if (profile.isCompleted(quest) == inverted) {
-			return false;
+		if (!inverted) {
+			return profile.isCompleted(quest);
 		}
 		else {
-			if(time == 0) {
-				return true;
-			}
-			else {
-				return (((System.currentTimeMillis() / 1000) - profile.getCompletionTime(quest)) < time) != inverted;
-			}
+			if (!profile.isCompleted(quest)) return true;
+			else if (time == 0) return false;
+			else return ((System.currentTimeMillis() / 1000) - profile.getCompletionTime(quest)) > time;
 		}
 	}
 	
