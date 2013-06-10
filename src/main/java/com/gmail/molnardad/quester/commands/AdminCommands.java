@@ -77,6 +77,26 @@ public class AdminCommands {
 			sender.sendMessage(ChatColor.RED + context.getSenderLang().MSG_AUTOSAVE_NOT_RUNNING);
 		}
 	}
+	
+	@QCommandLabels({"debug"})
+	@QCommand(
+			section = "Admin",
+			desc = "Toggles debug setting",
+			min = 1,
+			max = 1,
+			permission = DataManager.PERM_ADMIN)
+	public void debug(QCommandContext context, CommandSender sender) {
+		String arg = context.getString(0);
+		if (arg.equalsIgnoreCase("on") || arg.equalsIgnoreCase("true")) {
+			DataManager.debug = true;
+			sender.sendMessage(ChatColor.RED + "Debug mode enabled.");
+		} else if (arg.equalsIgnoreCase("off") || arg.equalsIgnoreCase("false")) {
+			DataManager.debug = false;
+			sender.sendMessage(ChatColor.RED + "Debug mode disabled.");
+		} else {
+			sender.sendMessage(ChatColor.RED + "Invalid argument specified, must be on or off.");
+		}
+	}
 
 	@QCommandLabels({"reload"})
 	@QCommand(
