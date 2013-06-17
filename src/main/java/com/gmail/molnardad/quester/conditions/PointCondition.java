@@ -33,7 +33,7 @@ public final class PointCondition extends Condition {
 	
 	@Override
 	public String show() {
-		String flag = inverted ? "at least ": "less than ";
+		String flag = inverted ? "less than ": "at least ";
 		return "Must have " + flag + amount + " quest points.";
 	}
 	
@@ -57,6 +57,7 @@ public final class PointCondition extends Condition {
 		}
 	}
 	
+	@Override
 	protected void save(StorageKey key) {
 		key.setInt("amount", amount);
 		if(inverted) {
