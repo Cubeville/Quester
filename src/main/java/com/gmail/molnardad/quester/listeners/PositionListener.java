@@ -11,6 +11,7 @@ import com.gmail.molnardad.quester.QuestFlag;
 import com.gmail.molnardad.quester.Quester;
 import com.gmail.molnardad.quester.elements.Objective;
 import com.gmail.molnardad.quester.exceptions.QuesterException;
+import com.gmail.molnardad.quester.managers.DataManager;
 import com.gmail.molnardad.quester.managers.LanguageManager;
 import com.gmail.molnardad.quester.managers.QuestManager;
 import com.gmail.molnardad.quester.objectives.LocObjective;
@@ -27,32 +28,34 @@ public class PositionListener implements Runnable {
 	}
 	
 	@Override
-	public void run() {
+	public void run() {		
+		players:
 		for(Player player : Bukkit.getServer().getOnlinePlayers()) {
 	    	Quest quest = qm.getPlayerQuest(player.getName());
 		    if(quest != null) {
 		    	// LOCATION CHECK
 		    	if(!quest.allowedWorld(player.getWorld().getName().toLowerCase()))
-		    		return;
+		    		continue players;
 		    	List<Objective> objs = quest.getObjectives();
+		    	objectives:
 		    	for(int i = 0; i < objs.size(); i++) {
 		    		if(objs.get(i).getType().equalsIgnoreCase("LOCATION")) {
 		    			if(!qm.isObjectiveActive(player, i)){
-		    				continue;
+		    				continue objectives;
 		    			}
 		    			LocObjective obj = (LocObjective)objs.get(i);
 		    			if(obj.checkLocation(player.getLocation())) {
 		    				qm.incProgress(player, i);
-		    				return;
+		    				continue objectives;
 		    			}
 		    		} else if(objs.get(i).getType().equalsIgnoreCase("WORLD")) {
 		    			if(!qm.isObjectiveActive(player, i)){
-		    				continue;
+		    				continue objectives;
 		    			}
 		    			WorldObjective obj = (WorldObjective)objs.get(i);
 		    			if(obj.checkWorld(player.getWorld().getName())) {
 		    				qm.incProgress(player, i);
-		    				return;
+		    				continue objectives;
 		    			}
 		    		}
 		    	}
