@@ -1,10 +1,9 @@
 package com.gmail.molnardad.quester.qevents;
 
-import java.util.List;
-
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 
+import com.gmail.molnardad.quester.ActionSource;
 import com.gmail.molnardad.quester.Quester;
 import com.gmail.molnardad.quester.commandbase.QCommand;
 import com.gmail.molnardad.quester.commandbase.QCommandContext;
@@ -12,6 +11,8 @@ import com.gmail.molnardad.quester.elements.QElement;
 import com.gmail.molnardad.quester.elements.Qevent;
 import com.gmail.molnardad.quester.exceptions.ObjectiveException;
 import com.gmail.molnardad.quester.exceptions.QuesterException;
+import com.gmail.molnardad.quester.profiles.PlayerProfile;
+import com.gmail.molnardad.quester.profiles.ProfileManager;
 import com.gmail.molnardad.quester.storage.StorageKey;
 
 @QElement("OBJCOM")
@@ -34,16 +35,19 @@ public final class ObjectiveCompleteQevent extends Qevent {
 	@Override
 	protected void run(Player player, Quester plugin) {
 		try {
-			List<Integer> prog = plugin.getProfileManager().getProfile(player.getName()).getProgress();
-			if(objective >= 0 && objective < prog.size()) {
-				int req = plugin.getQuestManager().getPlayerQuest(player.getName()).getObjective(objective).getTargetAmount();
-				if(prog.get(objective) < req) {
+			ProfileManager profMan = plugin.getProfileManager();
+			PlayerProfile prof = profMan.getProfile(player.getName());
+			int[] prog = prof.getProgress().getProgress();
+			if(objective >= 0 && objective < prog.length) {
+				int req = prof.getQuest().getObjective(objective).getTargetAmount();
+				if(prog[objective] < req) {
+					ActionSource as = ActionSource.eventSource(this);
 					if(runEvents) {
-						plugin.getQuestManager().incProgress(player, objective, prog.set(objective, req - prog.get(objective)));
+						profMan.incProgress(player, as, objective, req - prog[objective]);
 					}
 					else {
-						prog.set(objective, req);
-						plugin.getQuestManager().complete(player, false, plugin.getLanguageManager().getPlayerLang(player.getName()), false);
+						profMan.setProgress(player.getName(), objective, req);
+						profMan.complete(player, as, plugin.getLanguageManager().getPlayerLang(player.getName()), false);
 					}
 				}
 				else {

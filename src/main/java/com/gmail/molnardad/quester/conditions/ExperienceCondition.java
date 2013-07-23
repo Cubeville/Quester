@@ -36,7 +36,7 @@ public final class ExperienceCondition extends Condition {
 		if(isLevel) {
 			value = expMan.getLevelForExp(value);
 		}
-		return (value >= amount) != inverted;
+		return (value < amount) == inverted;
 	}
 	
 	@Override
@@ -73,7 +73,7 @@ public final class ExperienceCondition extends Condition {
 			}
 			return new ExperienceCondition(amt,context.hasFlag('l'), context.hasFlag('i'));
 	}
-	
+
 	@Override
 	protected void save(StorageKey key) {
 		key.setInt("amount", amount);

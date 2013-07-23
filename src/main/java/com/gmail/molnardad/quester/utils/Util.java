@@ -5,6 +5,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Random;
 import java.util.Set;
 
 import org.bukkit.Bukkit;
@@ -19,16 +20,20 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
+import org.bukkit.event.inventory.InventoryType;
+import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.util.Vector;
 
+import com.gmail.molnardad.quester.QConfiguration;
 import com.gmail.molnardad.quester.Quester;
-import com.gmail.molnardad.quester.managers.DataManager;
 import com.gmail.molnardad.quester.strings.QuesterLang;
 
 public class Util {
+	
+	private static Random randGen = new Random();
 	
 	// LINE
 	public static String line(ChatColor lineColor) {
@@ -62,16 +67,16 @@ public class Util {
 		if(args.length < 1)
 			throw new IllegalArgumentException(ChatColor.RED + lang.ERROR_CMD_LOC_INVALID);
 		
-		if(args[0].equalsIgnoreCase(DataManager.locLabelHere)) {
+		if(args[0].equalsIgnoreCase(QConfiguration.locLabelHere)) {
 			if(sender instanceof Player) {
 				return ((Player) sender).getLocation();
 			}
 			else {
 				throw new IllegalArgumentException(ChatColor.RED + lang.ERROR_CMD_LOC_HERE
-						.replaceAll("%here", DataManager.locLabelHere));
+						.replaceAll("%here", QConfiguration.locLabelHere));
 			}
 		}
-		else if(args[0].equalsIgnoreCase(DataManager.locLabelBlock)) {
+		else if(args[0].equalsIgnoreCase(QConfiguration.locLabelBlock)) {
 			if(sender instanceof Player) {
 				Block block = ((Player) sender).getTargetBlock(null, 5);
 				if(block == null) {
@@ -81,10 +86,10 @@ public class Util {
 			}
 			else {
 				throw new IllegalArgumentException(ChatColor.RED + lang.ERROR_CMD_LOC_BLOCK
-						.replaceAll("%block", DataManager.locLabelBlock));
+						.replaceAll("%block", QConfiguration.locLabelBlock));
 			}
 		}
-		else if(args[0].equalsIgnoreCase(DataManager.locLabelPlayer)) {
+		else if(args[0].equalsIgnoreCase(QConfiguration.locLabelPlayer)) {
 			return null;
 		}
 		
@@ -100,7 +105,7 @@ public class Util {
 			if(y < 0) {
 				throw new IllegalArgumentException(ChatColor.RED + lang.ERROR_CMD_COORDS_INVALID);
 			}
-			if(sender instanceof Player && args[3].equalsIgnoreCase(DataManager.worldLabelThis)) {
+			if(sender instanceof Player && args[3].equalsIgnoreCase(QConfiguration.worldLabelThis)) {
 				loc = new Location(((Player)sender).getWorld(), x, y, z);
 			} else {
 				World world = Bukkit.getServer().getWorld(args[3]);
@@ -144,6 +149,22 @@ public class Util {
 		return result.toString();
 	}
 	
+	
+	//whatever
+	public static String implodeInt(int[] ints, String glue) {
+		StringBuilder result = new StringBuilder();
+		boolean first = true;
+		for(int i = 0; i < ints.length; i++) {
+			if(first) {
+				first = false;
+			} else {
+				result.append(glue);
+			}
+			result.append(ints[i]);
+		}
+		return result.toString();
+	}
+	
 	public static String implodeInt(Integer[] ints, String glue) {
 		StringBuilder result = new StringBuilder();
 		boolean first = true;
@@ -159,8 +180,17 @@ public class Util {
 	}
 	
 	public static boolean permCheck(CommandSender sender, String perm, boolean message, QuesterLang lang) {
-		if(sender.isOp() || sender.hasPermission(perm) || sender.hasPermission(DataManager.PERM_ADMIN)) {
+		if(perm.isEmpty()) {
 			return true;
+		}
+		if(sender.isOp() || sender.hasPermission(QConfiguration.PERM_ADMIN)) {
+			return true;
+		}
+		for(String s : perm.split("\\|\\|")) {
+			Quester.log.info(s);
+			if(sender.hasPermission(s)) {
+				return true;
+			}
 		}
 		if(message)
 			sender.sendMessage(ChatColor.RED + lang.MSG_PERMS);
@@ -556,7 +586,7 @@ public class Util {
 		if(loc == null)
 			return null;
 		
-		str = String.format(Locale.ENGLISH, "%.1f;%.1f;%.1f;"+loc.getWorld().getName(), loc.getX(), loc.getY(), loc.getZ());
+		str = String.format(Locale.ENGLISH, "%.1f;%.1f;%.1f;%s", loc.getX(), loc.getY(), loc.getZ(), loc.getWorld().getName());
 		
 		return str;
 	}
@@ -567,7 +597,7 @@ public class Util {
 		if(loc == null)
 			return null;
 		
-		str = String.format(Locale.ENGLISH, "%.2f;%.2f;%.2f;"+loc.getWorld().getName()+";%.2f;%.2f;", loc.getX(), loc.getY(), loc.getZ(), loc.getYaw(), loc.getPitch());
+		str = String.format(Locale.ENGLISH, "%.2f;%.2f;%.2f;%s;%.2f;%.2f;", loc.getX(), loc.getY(), loc.getZ(), loc.getWorld().getName(), loc.getYaw(), loc.getPitch());
 		
 		return str;
 	}
@@ -598,7 +628,7 @@ public class Util {
 				pitch = Float.parseFloat(split[5]);
 			loc = new Location(world, x, y, z, yaw, pitch);
 		} catch (Exception e) {
-			if(DataManager.debug) {
+			if(QConfiguration.debug) {
 				Quester.log.severe("Error when deserializing location.");
 			}
 		}
@@ -612,7 +642,7 @@ public class Util {
 		if(d == 0)
 			return loc;
 		Location newLoc = loc.clone();
-		Vector v = new Vector(Quester.randGen.nextDouble()*d*2 - d, 0, Quester.randGen.nextDouble()*d*2 - d);
+		Vector v = new Vector(randGen.nextDouble()*d*2 - d, 0, randGen.nextDouble()*d*2 - d);
 		newLoc.add(v);
 		
 		return newLoc;
@@ -627,5 +657,20 @@ public class Util {
 			list.set(i, list.get(i+increment));
 		}
 		list.set(where, temp);
+	}
+	
+	// INVENTORY
+
+	public static Inventory createInventory(Player player) {
+		
+		Inventory inv = Bukkit.getServer().createInventory(null, InventoryType.PLAYER);
+		ItemStack[] contents = player.getInventory().getContents();
+		
+		for(int i = 0; i < contents.length; i++){
+			if(contents[i] != null){
+				inv.setItem(i, contents[i].clone());
+			}
+		}
+		return inv;
 	}
 }

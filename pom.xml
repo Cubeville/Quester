@@ -8,6 +8,9 @@
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <yml.version>${project.version}</yml.version>
+    <package.dir>${project.build.directory}</package.dir>
+    <assembly.dir>${project.build.directory}</assembly.dir>
+    <package.name>${project.build.finalName}</package.name>
   </properties>
   
   <repositories>
@@ -25,7 +28,7 @@
     </repository>
     <repository>
       <id>denizens-repo</id>
-      <url>http://ci.citizensnpcs.com/view/Characters/job/Denizen/592/maven-repository/repository/</url>
+      <url>http://ci.citizensnpcs.com/view/All/job/Denizen/1000/maven-repository/repository/</url>
     </repository>
     <repository>
       <id>Plugin Metrics</id>
@@ -41,7 +44,7 @@
     <dependency>
       <groupId>org.bukkit</groupId>
       <artifactId>bukkit</artifactId>
-      <version>1.5.1-R0.2-SNAPSHOT</version>
+      <version>1.5.2-R1.0</version>
     </dependency>
     <dependency>
       <groupId>net.citizensnpcs</groupId>
@@ -56,7 +59,7 @@
     <dependency>
       <groupId>net.aufdemrand</groupId>
       <artifactId>denizen</artifactId>
-      <version>0.8.8-PRERELEASE</version>
+      <version>0.8.9-PRERELEASE</version>
     </dependency> 
     <dependency>
       <groupId>me.thah3lper</groupId>
@@ -71,6 +74,7 @@
   </dependencies>
   
   <build>
+  
     <resources>
       <resource>
         <targetPath>.</targetPath>
@@ -93,6 +97,34 @@
             <target>1.6</target>
           </configuration>
       </plugin>
+      
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <version>2.4</version>
+        <configuration>
+          <archive>
+            <addMavenDescriptor>true</addMavenDescriptor>
+            <manifest>
+              <addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
+              <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+            </manifest>
+          </archive>
+          <outputDirectory>${package.dir}</outputDirectory>
+          <finalName>${package.name}</finalName>
+        </configuration>
+      </plugin>
+      
+       <plugin>
+         <artifactId>maven-assembly-plugin</artifactId>
+         <version>2.4</version>
+         <configuration>
+           <descriptor>${basedir}/src/main/assembly/default.xml</descriptor>
+           <finalName>${project.name} v${project.version}</finalName>
+           <appendAssemblyId>false</appendAssemblyId>
+           <outputDirectory>${assembly.dir}</outputDirectory>
+         </configuration>
+       </plugin>
       
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>

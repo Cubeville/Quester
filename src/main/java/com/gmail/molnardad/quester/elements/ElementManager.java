@@ -1,4 +1,4 @@
-package com.gmail.molnardad.quester.managers;
+package com.gmail.molnardad.quester.elements;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -6,6 +6,7 @@ import java.lang.reflect.Modifier;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.gmail.molnardad.quester.QConfiguration;
 import com.gmail.molnardad.quester.commandbase.QCommand;
 import com.gmail.molnardad.quester.commandbase.QCommandContext;
 import com.gmail.molnardad.quester.commandbase.exceptions.QCommandException;
@@ -140,11 +141,11 @@ public class ElementManager {
 		try {
 			String parent;
 			if(context.length() < ei.command.min()) {
-				parent = DataManager.displayedCmd+' '+context.getParentArg(0)+' '+context.getParentArg(1)+' ';
+				parent = QConfiguration.displayedCmd+' '+context.getParentArg(0)+' '+context.getParentArg(1)+' ';
 				throw new QUsageException(context.getSenderLang().ERROR_CMD_ARGS_NOT_ENOUGH, parent + ei.usage);
 			}
 			if(!(ei.command.max() < 0) && context.length() > ei.command.max()) {
-				parent = DataManager.displayedCmd+' '+context.getParentArg(0)+' '+context.getParentArg(1)+' ';
+				parent = QConfiguration.displayedCmd+' '+context.getParentArg(0)+' '+context.getParentArg(1)+' ';
 				throw new QUsageException(context.getSenderLang().ERROR_CMD_ARGS_TOO_MANY, ei.usage);
 			}
 			
@@ -202,7 +203,7 @@ public class ElementManager {
 		try {
 			Method load = clss.getDeclaredMethod("load", StorageKey.class); 
 			if(!Modifier.isStatic(load.getModifiers()) || !Modifier.isProtected(load.getModifiers())) {
-				throw new ElementException("Incorrect load method modifiers, expected protected static.");
+				throw new ElementException("Incorrect load method modifiers, expected \"protected static\".");
 			}
 			if(clss.getSuperclass() == Condition.class) {
 				if(load.getReturnType() != Condition.class) {

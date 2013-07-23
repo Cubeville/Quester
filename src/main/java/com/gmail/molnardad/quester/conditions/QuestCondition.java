@@ -2,13 +2,13 @@ package com.gmail.molnardad.quester.conditions;
 
 import org.bukkit.entity.Player;
 
-import com.gmail.molnardad.quester.PlayerProfile;
 import com.gmail.molnardad.quester.Quester;
 import com.gmail.molnardad.quester.commandbase.QCommand;
 import com.gmail.molnardad.quester.commandbase.QCommandContext;
 import com.gmail.molnardad.quester.commandbase.exceptions.QCommandException;
 import com.gmail.molnardad.quester.elements.Condition;
 import com.gmail.molnardad.quester.elements.QElement;
+import com.gmail.molnardad.quester.profiles.PlayerProfile;
 import com.gmail.molnardad.quester.storage.StorageKey;
 
 @QElement("QUEST")
@@ -42,20 +42,31 @@ public final class QuestCondition extends Condition {
 		if(running) {
 			return profile.hasQuest(quest) != inverted;
 		}
-		if (!inverted) {
-			return profile.isCompleted(quest);
+
+		if(time == 0) {
+			return profile.isCompleted(quest) != inverted;
 		}
 		else {
-			if (!profile.isCompleted(quest)) return true;
-			else if (time == 0) return false;
-			else return ((System.currentTimeMillis() / 1000) - profile.getCompletionTime(quest)) > time;
+			// QUEST: elapsed < time
+			// QUESTNOT: elapsed >= time
+			return (((System.currentTimeMillis() / 1000) - profile.getCompletionTime(quest)) < time) != inverted;
 		}
 	}
 	
 	@Override
 	public String show() {
-		String status = (inverted ? "not " : "") + (running ? "be doing" : "have done");
-		return "Must " + status + " quest '" + quest + "'.";
+		String type = inverted ? "not " : "";
+		String status = running ? "be doing" : "have done";
+		StringBuilder period = new StringBuilder();
+		if(!running && time != 0) {
+			if(inverted) {
+				period.append(" for ").append(time).append(" seconds.");
+			}
+			else {
+				period.append(" at most ").append(time).append(" seconds ago.");
+			}
+		}
+		return "Must " + type + status + " quest '" + quest + "'" + period.toString() + ".";
 	}
 	
 	@Override
@@ -87,7 +98,7 @@ public final class QuestCondition extends Condition {
 		}
 		return new QuestCondition(qst, t, context.hasFlag('r'), context.hasFlag('i'));
 	}
-	
+
 	@Override
 	protected void save(StorageKey key) {
 		key.setString("quest", quest);

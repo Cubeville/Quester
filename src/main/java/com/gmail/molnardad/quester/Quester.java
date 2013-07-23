@@ -2,7 +2,6 @@ package com.gmail.molnardad.quester;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Random;
 import java.util.logging.Logger;
 
 import javax.management.InstanceNotFoundException;
@@ -21,6 +20,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import org.mcstats.Metrics;
 
+import com.gmail.molnardad.quester.commandbase.CommandManager;
 import com.gmail.molnardad.quester.commandbase.exceptions.QCommandException;
 import com.gmail.molnardad.quester.commandbase.exceptions.QPermissionException;
 import com.gmail.molnardad.quester.commandbase.exceptions.QUsageException;
@@ -29,24 +29,21 @@ import com.gmail.molnardad.quester.commands.ModificationCommands;
 import com.gmail.molnardad.quester.commands.UserCommands;
 import com.gmail.molnardad.quester.conditions.*;
 import com.gmail.molnardad.quester.elements.Element;
+import com.gmail.molnardad.quester.elements.ElementManager;
 import com.gmail.molnardad.quester.exceptions.ElementException;
 import com.gmail.molnardad.quester.exceptions.QuesterException;
+import com.gmail.molnardad.quester.holder.QuestHolderManager;
+import com.gmail.molnardad.quester.holder.QuesterTrait;
 import com.gmail.molnardad.quester.listeners.*;
-import com.gmail.molnardad.quester.managers.CommandManager;
-import com.gmail.molnardad.quester.managers.DataManager;
-import com.gmail.molnardad.quester.managers.ElementManager;
-import com.gmail.molnardad.quester.managers.LanguageManager;
-import com.gmail.molnardad.quester.managers.ProfileManager;
-import com.gmail.molnardad.quester.managers.QuestHolderManager;
-import com.gmail.molnardad.quester.managers.QuestManager;
 import com.gmail.molnardad.quester.objectives.*;
+import com.gmail.molnardad.quester.profiles.ProfileManager;
 import com.gmail.molnardad.quester.qevents.*;
+import com.gmail.molnardad.quester.quests.QuestManager;
 import com.gmail.molnardad.quester.storage.StorageKey;
 
 public class Quester extends JavaPlugin {
 
 		public static Logger log = null;
-		public static Random randGen = new Random();
 		public static Economy econ = null;
 		
 		private LanguageManager langs = null;
@@ -73,9 +70,9 @@ public class Quester extends JavaPlugin {
 			
 			log = this.getLogger();
 			
-			DataManager.createInstance(this);
+			QConfiguration.createInstance(this);
 			try {
-				DataManager.loadData();
+				QConfiguration.loadData();
 			}
 			catch (InstanceNotFoundException e1) {
 				log.severe("DataManager instance exception. Disabling quester...");
@@ -91,11 +88,11 @@ public class Quester extends JavaPlugin {
 			profiles = new ProfileManager(this);
 			quests.setProfileManager(profiles); // loading conflicts...
 			holders = new QuestHolderManager(this);
-			commands = new CommandManager(langs, log, DataManager.displayedCmd, this);
+			commands = new CommandManager(langs, log, QConfiguration.displayedCmd, this);
 
 			this.loadLocal();
 			registerElements();
-			if(DataManager.useRank) {
+			if(QConfiguration.useRank) {
 				profiles.loadRanks();
 			}
 			holders.loadHolders();
@@ -148,10 +145,10 @@ public class Quester extends JavaPlugin {
 		public void onDisable() {
 			if(loaded) {
 				stopSaving();
-				profiles.saveProfiles();
 				quests.saveQuests();
+				profiles.saveProfiles();
 				holders.saveHolders();
-				if(DataManager.verbose) {
+				if(QConfiguration.verbose) {
 					log.info("Quester data saved.");
 				}
 			}
@@ -279,8 +276,8 @@ public class Quester extends JavaPlugin {
 			langs.loadLang("english", new File(getDataFolder(), "langEN.yml"));
 			int i = 1;
 			try {
-				if(DataManager.getConfigKey("languges").hasSubKeys()) {
-					for(StorageKey subKey : DataManager.getConfigKey("languges").getSubKeys()) {
+				if(QConfiguration.getConfigKey("languges").hasSubKeys()) {
+					for(StorageKey subKey : QConfiguration.getConfigKey("languges").getSubKeys()) {
 						if(subKey.getString("") != null) {
 							langs.loadLang(subKey.getName(), new File(getDataFolder(), subKey.getString("") + ".yml"));
 							i++;
@@ -316,6 +313,7 @@ public class Quester extends JavaPlugin {
 			
 			getServer().getPluginManager().registerEvents(new ActionListener(this), this);
 			getServer().getPluginManager().registerEvents(new BreakListener(this), this);
+			getServer().getPluginManager().registerEvents(new ChatListener(this), this);
 			getServer().getPluginManager().registerEvents(new CollectListener(this), this);
 			getServer().getPluginManager().registerEvents(new CraftSmeltListener(this), this);
 			getServer().getPluginManager().registerEvents(new DeathListener(this), this);
@@ -377,6 +375,7 @@ public class Quester extends JavaPlugin {
 					ActionObjective.class,
 					BossObjective.class,
 					BreakObjective.class,
+					ChatObjective.class,
 					CollectObjective.class,
 					CraftObjective.class,
 					DeathObjective.class,
@@ -386,10 +385,11 @@ public class Quester extends JavaPlugin {
 					ExpObjective.class,
 					FishObjective.class,
 					ItemObjective.class,
-					LocObjective.class,
+					RegionObjective.class,
 					MilkObjective.class,
 					MobKillObjective.class,
 					MoneyObjective.class,
+					NpcObjective.class,
 					NpcKillObjective.class,
 					NpcObjective.class,
 					PlaceObjective.class,
@@ -397,6 +397,7 @@ public class Quester extends JavaPlugin {
 					ShearObjective.class,
 					SmeltObjective.class,
 					TameObjective.class,
+					LocObjective.class,
 					WorldObjective.class,
 			};
 			for(Class<? extends Element> clss : classes) {
@@ -411,14 +412,14 @@ public class Quester extends JavaPlugin {
 		
 		public boolean startSaving() {
 			if(saveID == 0) {
-				if(DataManager.saveInterval > 0) {
+				if(QConfiguration.saveInterval > 0) {
 					saveID = getServer().getScheduler().scheduleSyncRepeatingTask(this, new Runnable() {
 						
 						@Override
 						public void run() {
 							profiles.saveProfiles();
 						}
-					}, DataManager.saveInterval * 20L * 60L, DataManager.saveInterval * 20L * 60L);
+					}, QConfiguration.saveInterval * 20L * 60L, QConfiguration.saveInterval * 20L * 60L);
 				}
 				return true;
 			}

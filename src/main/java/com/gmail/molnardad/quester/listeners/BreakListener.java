@@ -10,25 +10,26 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 
-import com.gmail.molnardad.quester.Quest;
+import com.gmail.molnardad.quester.ActionSource;
+import com.gmail.molnardad.quester.QConfiguration;
 import com.gmail.molnardad.quester.Quester;
 import com.gmail.molnardad.quester.elements.Objective;
-import com.gmail.molnardad.quester.managers.DataManager;
-import com.gmail.molnardad.quester.managers.QuestManager;
 import com.gmail.molnardad.quester.objectives.BreakObjective;
+import com.gmail.molnardad.quester.profiles.ProfileManager;
+import com.gmail.molnardad.quester.quests.Quest;
 
 public class BreakListener implements Listener {
 
-	private QuestManager qm;
+	private ProfileManager profMan;
 	
 	public BreakListener(Quester plugin) {
-		this.qm = plugin.getQuestManager();
+		this.profMan = plugin.getProfileManager();
 	}
 	
 	@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
 	public void onBreak(BlockBreakEvent event) {
 	    Player player = event.getPlayer();
-    	Quest quest = qm.getPlayerQuest(player.getName());
+    	Quest quest = profMan.getProfile(player.getName()).getQuest();
 	    if(quest != null) {
 	    	if(!quest.allowedWorld(player.getWorld().getName().toLowerCase()))
 	    		return;
@@ -36,7 +37,7 @@ public class BreakListener implements Listener {
 	    	for(int i = 0; i < objs.size(); i++) {
 	    		// check if Objective is type BREAK
 	    		if(objs.get(i).getType().equalsIgnoreCase("BREAK")) {
-		    		if(!qm.isObjectiveActive(player, i)){
+		    		if(!profMan.isObjectiveActive(player, i)){
 	    				continue;
 	    			}
 	    			BreakObjective obj = (BreakObjective)objs.get(i);
@@ -52,10 +53,10 @@ public class BreakListener implements Listener {
 	    			if(passed && obj.checkHand(player.getItemInHand().getTypeId())) {
 	    				// if DATA >= 0 compare
 	    				if(obj.getData() < 0 || obj.getData() == block.getData()) {
-	    					if(DataManager.brkNoDrops) {
+	    					if(QConfiguration.brkNoDrops) {
 	    						block.setType(Material.AIR);
 	    					}
-	    					qm.incProgress(player, i);
+	    					profMan.incProgress(player, ActionSource.listenerSource(event), i);
 	    					return;
 	    				}
 	    			}

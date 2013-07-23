@@ -64,7 +64,7 @@ public final class MoneyCondition extends Condition {
 			throw new QCommandException(context.getSenderLang().ERROR_CMD_AMOUNT_GENERAL);
 		}
 	}
-	
+
 	@Override
 	protected void save(StorageKey key) {
 		key.setDouble("amount", amount);

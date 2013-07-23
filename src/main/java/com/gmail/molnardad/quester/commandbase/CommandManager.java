@@ -1,4 +1,4 @@
-package com.gmail.molnardad.quester.managers;
+package com.gmail.molnardad.quester.commandbase;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -13,10 +13,8 @@ import java.util.logging.Logger;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 
-import com.gmail.molnardad.quester.commandbase.QCommand;
-import com.gmail.molnardad.quester.commandbase.QCommandContext;
-import com.gmail.molnardad.quester.commandbase.QCommandLabels;
-import com.gmail.molnardad.quester.commandbase.QNestedCommand;
+import com.gmail.molnardad.quester.LanguageManager;
+import com.gmail.molnardad.quester.QConfiguration;
 import com.gmail.molnardad.quester.commandbase.exceptions.QCommandException;
 import com.gmail.molnardad.quester.commandbase.exceptions.QPermissionException;
 import com.gmail.molnardad.quester.commandbase.exceptions.QUsageException;
@@ -115,21 +113,32 @@ public class CommandManager {
 		}
 		String label = args[level].toLowerCase();
 		
+		boolean execute = false;
+		if(parent != null) {
+			execute = annotations.get(parent).forceExecute();
+		}
+		
 		Method method = labels.get(parent).get(label);
 		if(method == null) {
 			method = aliases.get(parent).get(label);
 		}
 		if(method == null) {
-			throw new QUsageException("Unknown argument: " + label, getUsage(args, level-1, parent));
+			if(execute){
+				method = parent;
+				level--;
+			}
+			else {
+				throw new QUsageException("Unknown argument: " + label, getUsage(args, level-1, parent));
+			}
 		}
 
 		// check every permission for nested command
 		QCommand cmd = annotations.get(method);
-		if(!cmd.permission().isEmpty() && (sender == null || !Util.permCheck(sender, cmd.permission(), false, null))) {
+		if(sender == null || !Util.permCheck(sender, cmd.permission(), false, null)) {
 			throw new QPermissionException();
 		}
 		
-		if(labels.get(method) != null) { // going deeper
+		if(method != parent && labels.get(method) != null) { // going deeper
 			int numArgs = args.length - level - 1;
 			if(numArgs < 1) {
 				throw new QUsageException("Not enough argmunents.", getUsage(args, level, method));
@@ -174,8 +183,8 @@ public class CommandManager {
 			else if(e.getCause() instanceof QuesterException) {
 				throw (QuesterException) e.getCause();
 			}
-			else if(e.getCause() instanceof NumberFormatException) {
-				throw (NumberFormatException) e.getCause();
+			else if(e.getCause() instanceof IllegalArgumentException) {
+				throw (IllegalArgumentException) e.getCause();
 			}
 			else {
 				ex = e;
@@ -183,7 +192,7 @@ public class CommandManager {
 		}
 		if(ex != null) {
 			logger.warning("Failed to execute command.");
-			if(DataManager.debug) {
+			if(QConfiguration.debug) {
 				ex.printStackTrace();
 			}
 		}
@@ -201,6 +210,9 @@ public class CommandManager {
 			}
 			else {
 				throw new IllegalArgumentException(s);
+			}
+			if(!Util.permCheck(sender, annotations.get(m).permission(), false, null)) {
+				return result;
 			}
 		}
 		QCommand anno = null;
@@ -350,7 +362,7 @@ public class CommandManager {
 			ex = e;
 		}
 		if(ex != null) {
-			if(DataManager.debug) {
+			if(QConfiguration.debug) {
 				logger.info("Instantiating class '" + clss.getCanonicalName() + " failed.");
 				ex.printStackTrace();
 			}

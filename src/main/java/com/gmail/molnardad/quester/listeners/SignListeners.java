@@ -14,17 +14,18 @@ import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.SignChangeEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 
-import com.gmail.molnardad.quester.Quest;
-import com.gmail.molnardad.quester.QuestHolder;
+import com.gmail.molnardad.quester.ActionSource;
+import com.gmail.molnardad.quester.LanguageManager;
+import com.gmail.molnardad.quester.QConfiguration;
 import com.gmail.molnardad.quester.Quester;
-import com.gmail.molnardad.quester.QuesterSign;
 import com.gmail.molnardad.quester.exceptions.HolderException;
 import com.gmail.molnardad.quester.exceptions.QuesterException;
-import com.gmail.molnardad.quester.managers.DataManager;
-import com.gmail.molnardad.quester.managers.LanguageManager;
-import com.gmail.molnardad.quester.managers.ProfileManager;
-import com.gmail.molnardad.quester.managers.QuestHolderManager;
-import com.gmail.molnardad.quester.managers.QuestManager;
+import com.gmail.molnardad.quester.holder.QuestHolder;
+import com.gmail.molnardad.quester.holder.QuestHolderManager;
+import com.gmail.molnardad.quester.holder.QuesterSign;
+import com.gmail.molnardad.quester.profiles.ProfileManager;
+import com.gmail.molnardad.quester.quests.Quest;
+import com.gmail.molnardad.quester.quests.QuestManager;
 import com.gmail.molnardad.quester.strings.QuesterLang;
 import com.gmail.molnardad.quester.utils.Util;
 
@@ -66,13 +67,13 @@ public class SignListeners implements Listener {
 				}
 			}
 			
-			if(!Util.permCheck(player, DataManager.PERM_USE_SIGN, true, lang)) {
+			if(!Util.permCheck(player, QConfiguration.PERM_USE_SIGN, true, lang)) {
 				return;
 			}
 			if(player.isSneaking()) {
 				return;
 			}
-			boolean isOp = Util.permCheck(player, DataManager.PERM_MODIFY, false, null);
+			boolean isOp = Util.permCheck(player, QConfiguration.PERM_MODIFY, false, null);
 
 			event.setCancelled(true);
 			QuestHolder qh = holMan.getHolder(qs.getHolderID());
@@ -96,14 +97,14 @@ public class SignListeners implements Listener {
 				}
 				qh.interact(player.getName());
 
-				Quest q = qm.getQuest(holMan.getOne(qh));
-				if(q != null) {
-					if(profMan.hasQuest(player.getName(), q.getName())) {
+				Quest quest = qm.getQuest(holMan.getOne(qh));
+				if(quest != null) {
+					if(profMan.getProfile(player.getName()).hasQuest(quest)) {
 						return;
 					}
 					else {
 						try {
-							qm.showQuest(player, q.getName(), lang);
+							qm.showQuest(player, quest.getName(), lang);
 							return;
 						}
 						catch (QuesterException ignore) {}
@@ -152,7 +153,7 @@ public class SignListeners implements Listener {
 				qh.interact(player.getName());
 				List<Integer> qsts = qh.getQuests();
 				
-				Quest currentQuest = qm.getPlayerQuest(player.getName());
+				Quest currentQuest = profMan.getProfile(player.getName()).getQuest();
 				if(!player.isSneaking()) {
 					int questID = currentQuest == null ? -1 : currentQuest.getID();
 					// player has quest and quest giver does not accept this quest
@@ -163,10 +164,10 @@ public class SignListeners implements Listener {
 					// player has quest and quest giver accepts this quest
 					if(questID >= 0 && qsts.contains(questID)) {
 						try {
-							qm.complete(player, false, lang);
+							profMan.complete(player, ActionSource.holderSource(qh), lang);
 						} catch (QuesterException e) {
 							try {
-								qm.showProgress(player, lang);
+								profMan.showProgress(player, lang);
 							} catch (QuesterException f) {
 								player.sendMessage(ChatColor.DARK_PURPLE + lang.ERROR_INTERESTING);
 							}
@@ -181,7 +182,7 @@ public class SignListeners implements Listener {
 				// player doesn't have quest
 				if(qm.isQuestActive(selected)) {
 					try {
-						qm.startQuest(player, qm.getQuestName(selected), false, lang);
+						profMan.startQuest(player, qm.getQuestName(selected), ActionSource.holderSource(qh), lang);
 					} catch (QuesterException e) {
 						player.sendMessage(e.getMessage());
 					}
@@ -200,7 +201,7 @@ public class SignListeners implements Listener {
 			Sign sign = (Sign) block.getState();
 			if(holMan.getSign(sign.getLocation()) != null) {
 				QuesterLang lang = langMan.getPlayerLang(event.getPlayer().getName());
-				if(!event.getPlayer().isSneaking() || !Util.permCheck(event.getPlayer(), DataManager.PERM_MODIFY, false, null)) {
+				if(!event.getPlayer().isSneaking() || !Util.permCheck(event.getPlayer(), QConfiguration.PERM_MODIFY, false, null)) {
 					event.setCancelled(true);
 					return;
 				}
@@ -215,7 +216,7 @@ public class SignListeners implements Listener {
 		Block block = event.getBlock();
 		if(event.getLine(0).equals("[Quester]")) {
 			QuesterLang lang = langMan.getPlayerLang(event.getPlayer().getName());
-			if(!Util.permCheck(event.getPlayer(), DataManager.PERM_MODIFY, true, lang)) {
+			if(!Util.permCheck(event.getPlayer(), QConfiguration.PERM_MODIFY, true, lang)) {
 				block.breakNaturally();
 			}
 			event.setLine(0, ChatColor.BLUE + "[Quester]");

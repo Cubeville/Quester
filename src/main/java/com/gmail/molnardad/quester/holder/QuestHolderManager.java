@@ -1,4 +1,4 @@
-package com.gmail.molnardad.quester.managers;
+package com.gmail.molnardad.quester.holder;
 
 import java.io.File;
 import java.security.InvalidKeyException;
@@ -12,12 +12,13 @@ import org.bukkit.Location;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
-import com.gmail.molnardad.quester.QuestHolder;
+import com.gmail.molnardad.quester.QConfiguration;
 import com.gmail.molnardad.quester.Quester;
-import com.gmail.molnardad.quester.QuesterSign;
 import com.gmail.molnardad.quester.exceptions.CustomException;
 import com.gmail.molnardad.quester.exceptions.HolderException;
 import com.gmail.molnardad.quester.exceptions.QuesterException;
+import com.gmail.molnardad.quester.profiles.ProfileManager;
+import com.gmail.molnardad.quester.quests.QuestManager;
 import com.gmail.molnardad.quester.storage.ConfigStorage;
 import com.gmail.molnardad.quester.storage.Storage;
 import com.gmail.molnardad.quester.storage.StorageKey;
@@ -95,13 +96,11 @@ public class QuestHolderManager {
 		QuestHolder qh = new QuestHolder(name);
 		int id = getNewHolderID();
 		holderIds.put(id, qh);
-		saveHolders();
 		return id;
 	}
 	
 	public void removeHolder(int ID) {
 		holderIds.remove(ID);
-		saveHolders();
 	}
 	
 	public void addHolderQuest(String issuer, int questID, QuesterLang lang) throws QuesterException {
@@ -110,7 +109,6 @@ public class QuestHolderManager {
 			throw new HolderException(lang.ERROR_HOL_NOT_EXIST);
 		}
 		qh.addQuest(questID);
-		saveHolders();
 	}
 	
 	public void removeHolderQuest(String issuer, int questID, QuesterLang lang) throws QuesterException {
@@ -119,7 +117,6 @@ public class QuestHolderManager {
 			throw new HolderException(lang.ERROR_HOL_NOT_EXIST);
 		}
 		qh.removeQuest(questID);
-		saveHolders();
 	}
 	
 	public void moveHolderQuest(String issuer, int which, int where, QuesterLang lang) throws QuesterException {
@@ -133,7 +130,6 @@ public class QuestHolderManager {
 		catch (IndexOutOfBoundsException e) {
 			throw new CustomException(lang.ERROR_CMD_ID_OUT_OF_BOUNDS);
 		}
-		saveHolders();
 	}
 	
 	public int getOne(QuestHolder holder) {
@@ -316,8 +312,7 @@ public class QuestHolderManager {
 			signs.put(sign.getLocation(), sign);
 		}
 		
-		saveHolders();
-		if(DataManager.verbose) {
+		if(QConfiguration.verbose) {
 			Quester.log.info(holderIds.size() + " holders loaded.");
 			Quester.log.info(signs.size() + " signs loaded.");
 		}

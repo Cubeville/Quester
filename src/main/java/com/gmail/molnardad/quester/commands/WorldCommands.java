@@ -4,14 +4,14 @@ import org.bukkit.ChatColor;
 import org.bukkit.World;
 import org.bukkit.command.CommandSender;
 
+import com.gmail.molnardad.quester.QConfiguration;
 import com.gmail.molnardad.quester.Quester;
 import com.gmail.molnardad.quester.commandbase.QCommand;
 import com.gmail.molnardad.quester.commandbase.QCommandContext;
 import com.gmail.molnardad.quester.commandbase.QCommandLabels;
 import com.gmail.molnardad.quester.commandbase.exceptions.QCommandException;
 import com.gmail.molnardad.quester.exceptions.QuesterException;
-import com.gmail.molnardad.quester.managers.DataManager;
-import com.gmail.molnardad.quester.managers.QuestManager;
+import com.gmail.molnardad.quester.quests.QuestManager;
 
 public class WorldCommands {
 	
@@ -30,12 +30,12 @@ public class WorldCommands {
 			usage = "{<world>}")
 	public void set(QCommandContext context, CommandSender sender) throws QuesterException, QCommandException {
 		World world = null;
-		if(context.getString(0).equalsIgnoreCase(DataManager.worldLabelThis)) {
+		if(context.getString(0).equalsIgnoreCase(QConfiguration.worldLabelThis)) {
 			if(context.getPlayer() != null) {
 				world = context.getPlayer().getWorld();
 			} else {
 				throw new QCommandException(context.getSenderLang()
-						.ERROR_CMD_WORLD_THIS.replaceAll("%this", DataManager.worldLabelThis));
+						.ERROR_CMD_WORLD_THIS.replaceAll("%this", QConfiguration.worldLabelThis));
 			}
 		} else {
 			world = sender.getServer().getWorld(context.getString(0));
@@ -56,12 +56,12 @@ public class WorldCommands {
 			usage = "{<world>}")
 	public void remove(QCommandContext context, CommandSender sender) throws QuesterException, QCommandException {
 		String worldName = context.getString(0);
-		if(context.getString(0).equalsIgnoreCase(DataManager.worldLabelThis)) {
+		if(context.getString(0).equalsIgnoreCase(QConfiguration.worldLabelThis)) {
 			if(context.getPlayer() != null) {
 				worldName = context.getPlayer().getWorld().getName();
 			} else {
 				throw new QCommandException(context.getSenderLang()
-						.ERROR_CMD_WORLD_THIS.replaceAll("%this", DataManager.worldLabelThis));
+						.ERROR_CMD_WORLD_THIS.replaceAll("%this", QConfiguration.worldLabelThis));
 			}
 		}
 		if(qMan.removeQuestWorld(sender.getName(), worldName, context.getSenderLang())) {

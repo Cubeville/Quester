@@ -4,13 +4,16 @@ import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 
+import com.gmail.molnardad.quester.QConfiguration;
 import com.gmail.molnardad.quester.commandbase.QCommand;
 import com.gmail.molnardad.quester.commandbase.QCommandContext;
 import com.gmail.molnardad.quester.commandbase.exceptions.QCommandException;
 import com.gmail.molnardad.quester.elements.Objective;
 import com.gmail.molnardad.quester.elements.QElement;
-import com.gmail.molnardad.quester.managers.DataManager;
 import com.gmail.molnardad.quester.storage.StorageKey;
+import com.gmail.molnardad.quester.utils.Region;
+
+/* DEPRECATED - use REGION objective instead */
 
 @QElement("WORLD")
 public final class WorldObjective extends Objective {
@@ -42,7 +45,7 @@ public final class WorldObjective extends Objective {
 			usage = "{<world>}")
 	public static Objective fromCommand(QCommandContext context) throws QCommandException {
 		World world = null;
-		String label = DataManager.worldLabelThis;
+		String label = QConfiguration.worldLabelThis;
 		if(context.getString(0).equalsIgnoreCase(label)) {
 			Player player = context.getPlayer();
 			if(player != null) {
@@ -57,7 +60,7 @@ public final class WorldObjective extends Objective {
 		if(world == null) {
 			throw new QCommandException(context.getSenderLang().ERROR_CMD_WORLD_INVALID);
 		}
-		return new WorldObjective(world.getName());
+		return new RegionObjective(new Region.World(world.getName()), context.hasFlag('i'));
 	}
 
 	@Override
@@ -71,7 +74,7 @@ public final class WorldObjective extends Objective {
 		if(world == null) {
 			return null;
 		}
-		return new WorldObjective(world);
+		return new RegionObjective(new Region.World(world), key.getBoolean("inverted", false));
 	}
 	
 	//Custom methods
